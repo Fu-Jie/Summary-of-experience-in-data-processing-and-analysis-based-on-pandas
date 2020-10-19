@@ -1,11 +1,41 @@
 
-# 数据处理总结
+# 基于Pandas的数据处理与分析经验总结
+
+1. [基于Pandas的数据处理与分析经验总结](#基于pandas的数据处理与分析经验总结)
+   1. [数据处理目标](#数据处理目标)
+      1. [什么是“脏数据”](#什么是脏数据)
+      2. [什么是“干净的数据”](#什么是干净的数据)
+   2. [数据处理过程](#数据处理过程)
+      1. [读取数据](#读取数据)
+      2. [查看数据信息](#查看数据信息)
+         1. [查看表的行数和列数](#查看表的行数和列数)
+         2. [查看表的表头](#查看表的表头)
+         3. [查看表格的前几行](#查看表格的前几行)
+         4. [查看表格的后几行](#查看表格的后几行)
+         5. [查看表格数据摘要](#查看表格数据摘要)
+         6. [查看表格数值变量的描述性统计结果](#查看表格数值变量的描述性统计结果)
+         7. [使用pandas_profiling生成数据集信息报告](#使用pandas_profiling生成数据集信息报告)
+      3. [解决数据处理问题](#解决数据处理问题)
+      4. [实际频繁遇到的问题](#实际频繁遇到的问题)
+      5. [实际问题解决方案](#实际问题解决方案)
+
+本文的目的是记录和总结,我本人使用Pandas做数据处理与分析一年半以后的经历体会。其中大部分内容是数据处理的相关内容，还有一小部分是关于分析的内容，主要是描述性统计。
+
+本文不涉及机器学习和一些常见的统计的方法内容（回归分析、推断统计等）。
 
 ## 数据处理目标
 
-数据处理的目标，简而言之就是把脏的混乱的数据，尽过一些处理转换，把数据整理成利于分析和建模的`干净的数据`。
+数据处理的目标，简而言之就是把脏数据，尽过一些处理转换，把数据整理成利于分析和建模的“干净的数据”。
 
-### 干净的数据定义
+### 什么是“脏数据”
+
+对于脏数据没有明确的定义，可以从一下几点理解。
+
+1. 列变量设置不合理，不利于使用Pandas完成相关的数据分析需求。
+2. 表格里面数据值不规范，不清晰。
+3. 可能存在异常数据（空值、重复值、不合理值）。
+
+### 什么是“干净的数据”
 
 1. 每个单元格只储存单一信息
 2. 每列是不同的变量
@@ -14,11 +44,11 @@
 
 ## 数据处理过程
 
+注: 文中出现的`df`指的都是pandas里面一种可以用来存储表格样式的数据的容器，"`df`"与“表格”二者在文中描述的是一个意思。
+
 ### 读取数据
 
-读取各种数据源，比如（CSV、SQL、Excel、JSON、txt等），然后转换为 `dataframe` 。
-
-注: 以下出现的`df`指的都是pandas里面一种表格类型数据类型，指的是读入到pandas以后的数据源。
+读取各种数据源，比如（CSV、SQL、Excel、JSON、txt等），然后转换为 `dataframe`。
 
 ```Python
 # 以读取excel文件为例
@@ -50,28 +80,28 @@ df = pd.read_excel("table_01.xlsx")
 
 ### 查看数据信息
 
-* 查看表的行数和列数
+#### 查看表的行数和列数
 
-    ```Python
-    # 表格有10行5列
-    df.shape
-    >>> df
-    >>> (10, 5)
-    ```
+```Python
+# 表格有10行5列
+df.shape
+>>> df
+>>> (10, 5)
+```
 
-* 查看表的表头
+#### 查看表的表头
 
-    ```Python
-    df.columns
-    >>> df
-    >>> Index(['姓名', '语文', '数学', '英语', '考试类型'], dtype='object')
-    ```
+```Python
+df.columns
+>>> df
+>>> Index(['姓名', '语文', '数学', '英语', '考试类型'], dtype='object')
+```
 
-* 查看表的部分内容
+#### 查看表格的前几行
 
-    ```Python
-    df.head(3)
-    ```
+```Python
+df.head(3)
+```
 
 |      |  姓名  | 语文 | 数学 | 英语 | 考试类型 |
 | ---: | :----: | :--: | :--: | :--: | :------: |
@@ -79,36 +109,67 @@ df = pd.read_excel("table_01.xlsx")
 |    1 | 张香秀 |  67  |  79  |  78  |   期中   |
 |    2 |  麻寒  |  73  |  57  |  85  |   期中    |
 
-* 查看表格详细详细
+#### 查看表格的后几行
 
-    ```Python
-    df.info()
-    >>>
-    <class 'pandas.core.frame.DataFrame'>
-    RangeIndex: 10 entries, 0 to 9
-    Data columns (total 5 columns):
-    #   Column  Non-Null Count  Dtype
-    ---  ------  --------------  -----
-    0   姓名      10 non-null     object
-    1   语文      10 non-null     int64
-    2   数学      10 non-null     int64
-    3   英语      10 non-null     int64
-    4   考试类型    10 non-null     object
-    dtypes: int64(3), object(2)
-    memory usage: 528.0+ bytes
-    ```
+```Python
+df.tail(3)
+```
 
-* 使用pandas_profiling生成数据集
+|    | 姓名   |   语文 |   数学 |   英语 | 考试类型   |
+|---:|:-------|-------:|-------:|-------:|:-----------|
+|  7 | 麻寒   |     96 |     97 |     67 | 期末       |
+|  8 | 廉凡   |     59 |     70 |     63 | 期末       |
+|  9 | 冯乐萱 |     60 |     76 |     71 | 期末       |
 
-    ```Python
-    from pandas_profiling import ProfileReport
-    profile = ProfileReport(df, title='pandas_profiling_output')
-    ```
+#### 查看表格数据摘要
 
-    输出结果见此链接:
-    [pandas_profiling_output](data_summary.html)
+```Python
+df.info()
+>>>
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 10 entries, 0 to 9
+Data columns (total 5 columns):
+#   Column  Non-Null Count  Dtype
+---  ------  --------------  -----
+0   姓名      10 non-null     object
+1   语文      10 non-null     int64
+2   数学      10 non-null     int64
+3   英语      10 non-null     int64
+4   考试类型   10 non-null     object
+dtypes: int64(3), object(2)
+memory usage: 528.0+ bytes
+```
 
-### 频繁需要使用的数据操作方法
+#### 查看表格数值变量的描述性统计结果
+
+```Python
+df.describe()
+```
+
+|       |    语文 |    数学 |     英语 |
+|:------|--------:|--------:|---------:|
+| count | 10      | 10      | 10       |
+| mean  | 70.5    | 79.4    | 73.7     |
+| std   | 13.8183 | 14.4391 |  9.51081 |
+| min   | 57      | 59      | 63       |
+| 25%   | 60.25   | 70.25   | 66.25    |
+| 50%   | 64      | 78.5    | 70.5     |
+| 75%   | 77.5    | 93      | 78.5     |
+| max   | 96      | 97      | 91       |
+
+#### 使用pandas_profiling生成数据集信息报告
+
+使用pandas_profiling可以自动生成关于df的各种角度的详细的关于数据的元信息报告，对于简单的数据其实没有必要使用这个工具，但是它对于快速观测数据源的信息的确非常有用。
+
+```Python
+from pandas_profiling import ProfileReport
+profile = ProfileReport(df, title='pandas_profiling_output')
+```
+
+输出结果见此链接:
+[pandas_profiling_output](data_summary.html)
+
+### 解决数据处理问题
 
 1. 重命名列名
 
